@@ -21,6 +21,7 @@ export default <TFieldValues extends FieldValues, TContext = any>(
         }
 
         localProxyFormState && (localProxyFormState[_key] = true);
+
         return formState[_key];
       },
     });

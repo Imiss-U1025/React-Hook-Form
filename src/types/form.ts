@@ -113,6 +113,7 @@ export type UseFormProps<
   reValidateMode: Exclude<Mode, 'onTouched' | 'all'>;
   defaultValues: DefaultValues<TFieldValues> | AsyncDefaultValues<TFieldValues>;
   values: TFieldValues;
+  defaultErrors: FieldErrors<TFieldValues>;
   errors: FieldErrors<TFieldValues>;
   resetOptions: Parameters<UseFormReset<TFieldValues>>[1];
   resolver: Resolver<TFieldValues, TContext>;
@@ -623,7 +624,7 @@ export type UseFormHandleSubmit<
   TFieldValues extends FieldValues,
   TTransformedValues extends FieldValues | undefined = undefined,
 > = (
-  onValid: TTransformedValues extends undefined
+  onValid?: TTransformedValues extends undefined
     ? SubmitHandler<TFieldValues>
     : TTransformedValues extends FieldValues
     ? SubmitHandler<TTransformedValues>
