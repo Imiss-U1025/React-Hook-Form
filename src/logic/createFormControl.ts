@@ -21,6 +21,7 @@ import {
   PathValue,
   ReadFormState,
   Ref,
+  ResolverResult,
   SetFieldValue,
   SetValueConfig,
   Subjects,
@@ -415,8 +416,21 @@ export function createFormControl<
       ),
     );
 
+  const onAfterSchemaValid = (resolverResult: ResolverResult<TFieldValues>) => {
+    const { errors, values } = resolverResult;
+    if (isEmptyObject(errors)) {
+      for (const [key, value] of Object.entries(values)) {
+        setFieldValue(key, value, {
+          shouldDirty: true,
+          shouldValidate: false,
+        });
+      }
+    }
+  };
+
   const executeSchemaAndUpdateState = async (names?: InternalFieldName[]) => {
-    const { errors } = await _executeSchema(names);
+    const validationResult = await _executeSchema(names);
+    const { errors } = validationResult;
 
     if (names) {
       for (const name of names) {
@@ -428,6 +442,8 @@ export function createFormControl<
     } else {
       _formState.errors = errors;
     }
+
+    onAfterSchemaValid(validationResult);
 
     return errors;
   };
@@ -814,7 +830,6 @@ export function createFormControl<
     let isValid;
     let validationResult;
     const fieldNames = convertToArrayPayload(name) as InternalFieldName[];
-
     _updateIsValidating(true, fieldNames);
 
     if (_options.resolver) {
@@ -1126,9 +1141,11 @@ export function createFormControl<
       });
 
       if (_options.resolver) {
-        const { errors, values } = await _executeSchema();
+        const validationResult = await _executeSchema();
+        const { errors, values } = validationResult;
         _formState.errors = errors;
         fieldValues = values;
+        onAfterSchemaValid(validationResult);
       } else {
         await executeBuiltInValidation(_fields);
       }
@@ -1159,6 +1176,7 @@ export function createFormControl<
         submitCount: _formState.submitCount + 1,
         errors: _formState.errors,
       });
+
       if (onValidError) {
         throw onValidError;
       }
